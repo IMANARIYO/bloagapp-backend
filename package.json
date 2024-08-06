@@ -1,0 +1,50 @@
+{
+  "name": "blogapp",
+  "version": "1.0.0",
+  "description": "api of BlogApp using node and postgress",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "babel-node server.js",
+    "build": "babel server.js -d dist",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "imanariyo baptiste",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "blogapp": "file:",
+    "body-parser": "^1.20.2",
+    "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "fuzzy-search": "^3.2.1",
+    "i": "^0.3.7",
+    "js-yaml": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.7",
+    "nodemon": "^3.0.1",
+    "paypack-js": "^0.2.1",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.24.8",
+    "@babel/core": "^7.23.3",
+    "@babel/node": "^7.25.0",
+    "@babel/preset-env": "^7.25.3",
+    "nodemon": "^3.1.4",
+    "sequelize-cli": "^6.6.2",
+    "yamljs": "^0.3.0"
+  }
+}

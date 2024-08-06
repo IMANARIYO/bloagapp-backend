@@ -1,0 +1,827 @@
+openapi: 3.0.0
+info:
+  title: BlogApp
+  version: "1.0.0"
+  description: |
+    API documentation for the BlogApp application.
+  contact:
+    name: Imanariyo Baptiste
+    email: imanariyobaptiste@gmail.com
+    telphone: "+250787795163"
+
+    url: "https://imanariyo-portfolio-web.vercel.app/"
+
+servers:
+  - url: http://localhost:4444
+    description: Local server
+  - url: https://blogapp-ampm.onrender.com/
+    description: development server server
+
+
+tags:
+  - name: Seed
+    description: Endpoints related to database seeding
+  - name: Sync
+    description: Endpoints related to database Sync
+  - name: Authentication
+    description: Endpoints related to user authentication and management
+  - name: Posts
+    description: Endpoints related to blog posts
+  - name: Comments
+    description: Endpoints related to comments
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the user. Auto-generated.
+        email:
+          type: string
+          example: admin@example.com
+        password:
+          type: string
+          description: User's password (hashed in the database)
+          example: admin123
+        fullNames:
+          type: string
+          example: John Doe
+        username:
+          type: string
+          example: johndoe
+        profilePicture:
+          type: string
+          example: /media/profile-pic.jpg
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+      required:
+        - email
+        - password
+        - fullNames
+        - username
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the post. Auto-generated.
+        title:
+          type: string
+          example: My First Post
+        content:
+          type: string
+          example: This is the content of the first post.
+        category:
+          type: string
+          example: category.
+        authorId:
+          type: integer
+          example: 1
+        image:
+          type: string
+          example: /media/image.jpg
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+      required:
+        - title
+        - content
+        - authorId
+        - category
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique identifier for the comment. Auto-generated.
+        content:
+          type: string
+          example: This is a comment.
+        postId:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T12:00:00Z'
+      required:
+        - content
+        - postId
+        - authorId
+
+paths:
+  /seed:
+    post:
+      tags:
+        - Seed
+      summary: Seed the database
+      description: Seeds the database with sample data.
+      responses:
+        '200':
+          description: Database seeded successfully.
+        '500':
+          description: Error seeding database.
+  /sync-db:
+    post:
+      tags:
+        - Sync
+      summary: Sync the database
+      description: 
+      # Synchronizes the database schema with the models. 
+        This operation will:
+        - Drop and recreate all tables if using `{ force: true }`. 
+          # This results in the loss of existing data.
+        - Apply any new changes to the schema as defined in your models.
+        - Ensure the database structure matches your Sequelize models.
+        - It's important to use this operation cautiously in production environments to avoid unintentional data loss.
+      responses:
+        '200':
+          description: 
+            Database synced successfully. The database schema has been updated to match the models.
+        '500':
+          description: 
+            Error syncing database. An issue occurred while trying to synchronize the database schema, such as connectivity problems or schema definition errors.
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Logs in a user and returns an access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: user123
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflK1EL0SD3_MkmkzLSOQJw2b2LlP_EbHgdc1iMzzxA
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+        '404':
+          description: User not found
+
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: User Signup
+      description: Registers a new user.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: newuser@example.com
+                password:
+                  type: string
+                  example: NewPassword123
+                profilePicture:
+                  type: string
+                  format: binary
+                fullNames:
+                  type: string
+                  example: John Doe
+                username:
+                  type: string
+                  example: johndoe
+              required:
+                - email
+                - password
+                - fullNames
+                - username
+      responses:
+        '200':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Registration successful
+                  accesstoken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflK1EL0SD3_MkmkzLSOQJw2b2LlP_EbHgdc1iMzzxA
+                  userinfomation:
+                    $ref: '#/components/schemas/User'
+        '409':
+          description: Email already in use
+
+  /auth/forget:
+    post:
+      tags:
+        - Authentication
+      summary: Request Password Reset
+      description: Sends an OTP to the user's email for password reset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+      responses:
+        '200':
+          description: OTP sent successfully
+        '404':
+          description: User not found
+
+  /auth/reset:
+    post:
+      tags:
+        - Authentication
+      summary: Reset Password
+      description: Resets the user's password using the OTP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                otp:
+                  type: string
+                  example: 123456
+                newPassword:
+                  type: string
+                  example: NewPassword123
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid OTP or OTP expired
+        '404':
+          description: User not found
+
+  /auth/getAllUsers:
+    get:
+      tags:
+        - Authentication
+      summary: Get All Users
+      description: Retrieves a list of all users.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful retrieval
+
+  /auth/change:
+    post:
+      tags:
+        - Authentication
+      summary: Change Password
+      description: Changes the user's password.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                  example: OldPassword123
+                newPassword:
+                  type: string
+                  example: NewPassword123
+      responses:
+        '200':
+          description: Password changed successfully
+        '400':
+          description: Invalid current password
+
+  /auth/deleteUserById/{id}:
+    delete:
+      tags:
+        - Authentication
+      summary: Delete User by ID
+      description: Deletes a user by their ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user to delete
+      responses:
+        '200':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+  /auth/updateUserById/{id}:
+    patch:
+      tags:
+        - Authentication
+      summary: Update User by ID
+      description: Updates a user by their ID.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: updateduser@example.com
+                fullNames:
+                  type: string
+                  example: Jane Doe
+                username:
+                  type: string
+                  example: janedoe
+                profilePicture:
+                  type: string
+                  format: binary
+              required:
+                - email
+                - fullNames
+                - username
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User updated successfully
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+  /auth/addadminbyid/{id}:
+    patch:
+      tags:
+        - Authentication
+      summary: Add Admin by ID
+      description: Grants admin privileges to a user by their ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user to grant admin privileges
+      responses:
+        '200':
+          description: Admin privileges granted
+        '404':
+          description: User not found
+
+  /auth/maketheadminasuser/{id}:
+    patch:
+      tags:
+        - Authentication
+      summary: Revoke Admin by ID
+      description: Revokes admin privileges from a user by their ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user to revoke admin privileges
+      responses:
+        '200':
+          description: Admin privileges revoked
+        '404':
+          description: User not found
+
+  /posts:
+    get:
+      tags:
+        - Posts
+      summary: Get All Posts
+      description: Retrieves a list of all posts.
+      responses:
+        '200':
+          description: Successful retrieval
+        '404':
+          description: Posts not found
+
+    post:
+      tags:
+        - Posts
+      summary: Create Post
+      description: Creates a new post.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: My First Post
+                content:
+                  type: string
+                  example: This is the content of the first post.
+                category:
+                  type: string
+                  example: binance.
+                authorId:
+                  type: integer
+                  example: 1
+                image:
+                  type: string
+                  format: binary
+              required:
+                - title
+                - content
+      responses:
+        '201':
+          description: Post created successfully
+        '400':
+          description: Invalid request data
+
+  /posts/user/{userId}:
+    get:
+      tags:
+        - Posts
+      summary: Get Posts by User ID
+      description: Retrieves a list of posts created by a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user whose posts to retrieve
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '404':
+          description: Posts not found for the specified user
+
+  /posts/{id}:
+    get:
+      tags:
+        - Posts
+      summary: Get Post by ID
+      description: Retrieves a post by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the post to retrieve
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found
+
+    put:
+      tags:
+        - Posts
+      summary: Update Post by ID
+      description: Updates a post by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the post to update
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Updated Post Title
+                content:
+                  type: string
+                  example: Updated content of the post.
+                image:
+                  type: string
+                  format: binary
+              required:
+                - title
+                - content
+      responses:
+        '200':
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Post not found
+
+    delete:
+      tags:
+        - Posts
+      summary: Delete Post by ID
+      description: Deletes a post by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the post to delete
+      responses:
+        '200':
+          description: Post deleted successfully
+        '404':
+          description: Post not found
+
+  /comments/{postId}:
+    get:
+      tags:
+        - Comments
+      summary: Get Comments for a Post
+      description: Retrieves all comments for a specific post.
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the post to retrieve comments for
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Post not found
+  /comments:
+
+    get:
+      tags:
+        - Comments
+      summary: Get Comments all comments for all a Posts
+      description:  all for  all.
+      
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Post not found
+
+    post:
+      tags:
+        - Comments
+      summary: Add Comment to a Post
+      description: Adds a new comment to a specific post.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the post to add a comment to
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: This is a new comment
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '404':
+          description: Post not found
+
+  /comments/users/{userId}/posts/comments:
+    get:
+      tags:
+        - Comments
+      summary: Get Comments for All Posts of a User
+      description: Retrieves all comments for posts created by the specified user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user to retrieve comments for
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: No posts found for this user
+        '500':
+          description: Internal server error
+
+  /comments/comment/{id}:
+    get:
+      tags:
+        - Comments
+      summary: Get Comment by ID
+      description: Retrieves a comment by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the comment to retrieve
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '404':
+          description: Comment not found
+
+    put:
+      tags:
+        - Comments
+      summary: Update Comment by ID
+      description: Updates a comment by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the comment to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: Updated comment content
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Comment not found
+
+    delete:
+      tags:
+        - Comments
+      summary: Delete Comment by ID
+      description: Deletes a comment by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the comment to delete
+      responses:
+        '200':
+          description: Comment deleted successfully
+        '404':
+          description: Comment not found
+

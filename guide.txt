@@ -1,0 +1,50 @@
+Run All Migrations
+To apply all pending migrations and update the database schema to match the current state of your migration files, run:
+
+bash
+Copy code
+npx sequelize-cli db:migrate
+6. Check Migration Status
+To check the status of your migrations (i.e., which migrations have been applied and which are pending), use:
+
+bash
+Copy code
+npx sequelize-cli db:migrate:status
+7. Undo Migrations (Optional)
+If you need to undo the last migration or all migrations, you can use:
+
+Undo the last migration:
+
+bash
+Copy code
+npx sequelize-cli db:migrate:undo
+Undo all migrations:
+
+bash
+Copy code
+npx sequelize-cli db:migrate:undo:all
+8. Seed Data (Optional)
+If you also have seed data to insert, you can run seeders after migrating:
+
+Create Seeder Files:
+
+bash
+Copy code
+npx sequelize-cli seed:generate --name your-seeder-name
+Run Seeders:
+
+bash
+Copy code
+npx sequelize-cli db:seed:all
+Undo Seeders (Optional):
+
+bash
+Copy code
+npx sequelize-cli db:seed:undo:all
+By following these steps, you’ll be able to manage your database schema changes and seed data effectively with Sequelize CLI.
+
+
+
+
+
+
