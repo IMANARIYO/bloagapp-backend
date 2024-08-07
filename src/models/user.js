@@ -20,7 +20,7 @@ export const User = sequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true // Ensures that email addresses are unique
+     
     },
     profilePicture: {
       type: DataTypes.STRING,
@@ -45,11 +45,7 @@ export const User = sequelize.define(
       type: DataTypes.DATE, // Changed to DATE to handle date and time
       allowNull: true
     },
-    deleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: true
-    },
+  
     otp: {
       type: DataTypes.STRING,
       allowNull: true

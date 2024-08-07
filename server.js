@@ -51,18 +51,13 @@ app.use((req, res) => {
 });
 app.use(bodyParser.json())
 // Connect to PostgreSQL and sync database
-sequelize
-  .authenticate()
+sequelize.sync()
   .then(() => {
-    console.log(
-      'Connection to the database has been established successfully.'
-    )
-    // Sync database after successful connection
-    // return syncDB();
+    console.log('Connection to the database has been established successfully.');
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err)
-  })
+    console.error('Unable to connect to the database:', err);
+  });
 
 // Start the server
 app.listen(port, () => {
