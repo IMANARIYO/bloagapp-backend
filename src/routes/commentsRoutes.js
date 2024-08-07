@@ -5,8 +5,8 @@ import { Authenticate } from "../utils/jwtfunctions.js";
 // routes/commentRoutes.js
 
 const CommentRouter = express.Router();
-CommentRouter.get('/:postId', getComments);
-CommentRouter.get('/', getALLCommentsForALLposts);
+CommentRouter.get('/commentsForPost/:postId', getComments);
+CommentRouter.get('/list/CommentsForAllPosts', getALLCommentsForALLposts);
 
 CommentRouter.get('/comment/:id', getCommentById);
 CommentRouter.put('/comment/:id', updateComment);

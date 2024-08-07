@@ -16,7 +16,7 @@ export const seedUsers = async () => {
     await User.bulkCreate([
       {
         username: 'admin',
-        email: 'admin@example.com',
+        email: 'admin@gmail.com',
         password: adminHashedPassword,
         profilePicture: getRandomImagePath(),
         role: 'admin',
@@ -26,7 +26,7 @@ export const seedUsers = async () => {
       },
       {
         username: 'user',
-        email: 'user@example.com',
+        email: 'user@gmailyy.com',
         fullNames: 'User Full Name',
         password: userHashedPassword,
         profilePicture: getRandomImagePath(),
