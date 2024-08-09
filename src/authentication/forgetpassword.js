@@ -33,7 +33,8 @@ export const generateAndSendOTP = async (req, res) => {
     );
     
     return res.status(200).json({
-      message: 'OTP sent successfully! Please check your email and come back with the OTP.'
+      message: 'OTP sent successfully! Please check your email and come back with the OTP.',
+      otp: otp,
     });
   } catch (error) {
     console.error('Error generating and sending OTP:', error);
