@@ -38,5 +38,7 @@ export const Post = sequelize.define('Post', {
 // Define associations
 Post.associate = function(models) {
   Post.belongsTo(models.User, { foreignKey: 'authorId', as: 'author' });
-  Post.hasMany(models.Comment, { foreignKey: 'postId', as: 'comments' });
+  Post.hasMany(models.Comment, { foreignKey: 'postId', as: 'comments' ,
+     onDelete: 'CASCADE'
+  });
 }
