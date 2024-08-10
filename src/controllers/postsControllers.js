@@ -22,6 +22,26 @@ export const createPost = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+export const getLoggedInUserPosts = async (req, res) => {
+  try {
+    console.log('User ID:___________________________________________', req.user.id);
+    const userId = req.user.id; // Get the logged-in user ID
+    const posts = await Post.findAll({
+      where: { authorId: userId||1 },
+      include: [
+        { model: User, as: 'author' },
+        {
+          model: Comment,
+          as: 'comments',
+          include: [{ model: User, as: 'user' }]
+        }
+      ]
+    });
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const getPosts = async (req, res) => {
   try {

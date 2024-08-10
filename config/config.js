@@ -5,9 +5,9 @@ dotenv.config();
 
 
 
-const DB_URL="postgresql://imanariyo:W8auP2dV6WVQSVMt20tpcXlIIknow2lL@dpg-cqorifaj1k6c73d7925g-a.oregon-postgres.render.com/blogdb_c1k7"
 
-export const sequelize = new Sequelize(DB_URL, {
+
+export const sequelize = new Sequelize(process.env.DB_URL, {
   dialect: 'postgres', 
   logging: false,
   dialectOptions: {

@@ -182,7 +182,7 @@ paths:
               properties:
                 email:
                   type: string
-                  example: user@example.com
+                  example: user@gmail.com
                 password:
                   type: string
                   example: user123
@@ -222,10 +222,10 @@ paths:
               properties:
                 email:
                   type: string
-                  example: newuser@example.com
+                  example: newuser@gmail.com
                 password:
                   type: string
-                  example: NewPassword123
+                  example: Newuser123
                 profilePicture:
                   type: string
                   format: binary
@@ -513,9 +513,21 @@ paths:
       responses:
         '201':
           description: Post created successfully
-        '400':
+        '400':  
           description: Invalid request data
-
+  /posts/myposts:
+    get:
+      tags:
+        - Posts
+      summary: Get All my Posts
+      description: Retrieves a list of all posts.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful retrieval
+        '404':
+          description: Posts not found
   /posts/user/{userId}:
     get:
       tags:
