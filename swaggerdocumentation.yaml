@@ -754,7 +754,36 @@ paths:
           description: No posts found for this user
         '500':
           description: Internal server error
+  /comments/mycommentsToposts:
+    get:
+      tags:
+        - Comments
+      summary: Get Comments i commented to All Posts 
+      description: Retrieves all comments commentedby logged in user.
+      security:
+        - bearerAuth: []
+      
+          schema:
+            type: integer
+            example: 1
+          description: The ID of the user to retrieve comments for
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: No posts found for this user
+        '500':
+          description: Internal server error
 
+  
+  
+  
   /comments/comment/{id}:
     get:
       tags:

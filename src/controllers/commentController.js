@@ -125,3 +125,22 @@ export const deleteComment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getCommentsByLoggedInUser = async (req, res) => {
+  try {
+    // Fetch all comments authored by the logged-in user
+    const comments = await Comment.findAll({
+      where: { userId: req.user.id },
+      include: [{ model: Post, as: 'post' }] // Optionally include the post details if needed
+    });
+
+    if (!comments.length) {
+      return res.status(404).json({ message: 'No comments found for this user' });
+    }
+
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
