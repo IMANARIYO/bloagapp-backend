@@ -22,7 +22,7 @@ export const addComment = async (req, res) => {
 };
 export const getALLCommentsForALLposts = async (req, res) => {
   try {
-    console.log("___________________________________________________________________________________________________________________________________________________________")
+
     // Fetch all comments without filtering by postId
     const comments = await Comment.findAll({
       include: [{ model: User, as: 'user' }] // Include User model
@@ -59,6 +59,7 @@ export const getCommentById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const updateComment = async (req, res) => {
   try {

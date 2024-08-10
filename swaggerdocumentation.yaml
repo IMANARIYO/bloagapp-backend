@@ -658,8 +658,8 @@ paths:
                   $ref: '#/components/schemas/Comment'
         '404':
           description: Post not found
-  /comments:
 
+  /comments/list/CommentsForAllPosts:
     get:
       tags:
         - Comments
@@ -677,7 +677,7 @@ paths:
                   $ref: '#/components/schemas/Comment'
         '404':
           description: Post not found
-
+  /comments:
     post:
       tags:
         - Comments
