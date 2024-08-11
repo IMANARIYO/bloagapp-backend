@@ -2,6 +2,17 @@ import { models } from "../src/models/index.js";
 
 const { Comment, Post, User } = models;
 
+// Helper function to generate a random integer between min and max (inclusive)
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+// Helper function to generate a random date within a given year and month
+const getRandomDate = (year, month) => {
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  const randomTime = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());
+  return new Date(randomTime).toISOString(); // Return ISO string format
+};
+
 // Define the seedComments function
 export const seedComments = async () => {
   try {
@@ -11,35 +22,36 @@ export const seedComments = async () => {
         content: 'This article on AI in healthcare is very insightful. I can see how this will change the industry!',
         postId: 1, // Assuming the first post has id 1
         userId: 2, // Assuming the second user has id 2
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date('2024-01-15T10:00:00Z').toISOString(),
+        updatedAt: new Date('2024-01-15T10:00:00Z').toISOString(),
       },
       {
         content: 'Great read! The advancements in technology are truly groundbreaking.',
         postId: 1, // Assuming the first post has id 1
         userId: 1, // Assuming the first user has id 1
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date('2024-02-20T11:00:00Z').toISOString(),
+        updatedAt: new Date('2024-02-20T11:00:00Z').toISOString(),
       },
       {
         content: 'Thanks for sharing this information. It’s fascinating to see how AI is being applied in different fields.',
         postId: 2, // Assuming the second post has id 2
         userId: 3, // Assuming the third user has id 3
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },{
+        createdAt: new Date('2024-03-10T12:00:00Z').toISOString(),
+        updatedAt: new Date('2024-03-10T12:00:00Z').toISOString(),
+      },
+      {
         content: 'I never realized the impact of these technologies until now. Very well explained!',
         postId: 2, // Assuming the second post has id 2
         userId: 4, // Assuming the fourth user has id 4
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date('2024-04-05T13:00:00Z').toISOString(),
+        updatedAt: new Date('2024-04-05T13:00:00Z').toISOString(),
       },
     ]);
 
     console.log('Predefined comments seeded successfully!');
 
     // Generate additional comments
-    const numberOfAdditionalComments = 20; 
+    const numberOfAdditionalComments = 20;
     const additionalComments = [];
     const realisticComments = [
       'This is a great perspective. Thanks for sharing!',
@@ -61,16 +73,19 @@ export const seedComments = async () => {
       'I’m glad I came across this post; it’s very enlightening.',
       'I never thought about it this way before. Thanks for the new perspective!',
       'This is exactly what I was looking for, thanks!',
-      'Amazing article, you’ve gained a new follower!'
+      'Amazing article, you’ve gained a new follower!',
     ];
 
+    const currentYear = new Date().getFullYear();
+
     for (let i = 0; i < numberOfAdditionalComments; i++) {
+      const month = getRandomInt(0, 11); // Random month
       additionalComments.push({
         content: realisticComments[i % realisticComments.length],
         postId: (i % 19) + 1, // Cycle through posts
         userId: (i % 19) + 1, // Cycle through users
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: getRandomDate(currentYear, month),
+        updatedAt: getRandomDate(currentYear, month),
       });
     }
 

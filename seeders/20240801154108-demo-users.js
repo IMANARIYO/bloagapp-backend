@@ -4,6 +4,18 @@ import { getRandomImagePath } from "./imagespath.js";
 
 const { User } = models;
 
+// Helper function to generate a random integer between min and max (inclusive)
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+// Helper function to generate a random date within a given year and month
+const getRandomDate = (year, month) => {
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  const randomTime = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());
+  return new Date(randomTime).toISOString(); // Return ISO string format
+};
+
+// Define the seedUsers function
 export const seedUsers = async () => {
   try {
     // Hash the passwords for admin and regular users
@@ -20,7 +32,9 @@ export const seedUsers = async () => {
         role: 'admin',
         fullNames: 'Imanariyobaptiste',
         gender: 'male',
-        phoneNumber: '0787795163'
+        phoneNumber: '0787795163',
+        createdAt: new Date('2024-01-01T00:00:00Z').toISOString(),
+        updatedAt: new Date('2024-01-01T00:00:00Z').toISOString(),
       },
       {
         username: 'user',
@@ -30,7 +44,9 @@ export const seedUsers = async () => {
         role: 'user',
         fullNames: 'User Full Name',
         gender: 'male',
-        phoneNumber: '0787795164'
+        phoneNumber: '0787795164',
+        createdAt: new Date('2024-02-01T00:00:00Z').toISOString(),
+        updatedAt: new Date('2024-02-01T00:00:00Z').toISOString(),
       }
     ]);
 
@@ -43,6 +59,7 @@ export const seedUsers = async () => {
     const domains = ['example.com', 'mail.com', 'test.com'];
     const firstNames = ['John', 'Jane', 'Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank', 'Grace', 'Heidi'];
     const lastNames = ['Doe', 'Smith', 'Johnson', 'Brown', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];
+    const currentYear = new Date().getFullYear(); // Get the current year
 
     for (let i = 0; i < numberOfAdditionalUsers; i++) {
       const firstName = firstNames[i % firstNames.length];
@@ -51,6 +68,7 @@ export const seedUsers = async () => {
       const emailDomain = domains[i % domains.length];
       const email = `${username}@${emailDomain}`;
       const fullName = `${firstName} ${lastName}`;
+      const month = getRandomInt(0, 11); // Random month
 
       additionalUsers.push({
         username: username,
@@ -60,7 +78,9 @@ export const seedUsers = async () => {
         role: 'user',
         fullNames: fullName,
         gender: i % 2 === 0 ? 'male' : 'female', // Alternate gender
-        phoneNumber: `0787795${(i + 20).toString().padStart(2, '0')}` // Generate dummy phone numbers
+        phoneNumber: `0787795${(i + 20).toString().padStart(2, '0')}`, // Generate dummy phone numbers
+        createdAt: getRandomDate(currentYear, month),
+        updatedAt: getRandomDate(currentYear, month),
       });
     }
 

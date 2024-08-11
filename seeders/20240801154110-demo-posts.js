@@ -11,19 +11,25 @@ export const POST_CATEGORIES = [
   'Lifestyle',
   'Travel'
 ];
+
 export const getRandomCategory = () => {
   const randomIndex = Math.floor(Math.random() * POST_CATEGORIES.length);
   return POST_CATEGORIES[randomIndex];
 };
 
+// Helper function to get a random date within a given year and month
+const getRandomDate = (year, month) => {
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  const randomTime = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());
+  return new Date(randomTime);
+};
+
 const { Post } = models;
-
-
-
 
 export const seedPosts = async () => {
   try {
-    // Insert the predefined posts
+    // Insert predefined posts
     await Post.bulkCreate([
       {
         title: 'The Future of AI in Healthcare',
@@ -52,13 +58,17 @@ export const seedPosts = async () => {
     const additionalPosts = [];
 
     for (let i = 0; i < numberOfAdditionalPosts; i++) {
+      // Generate a random month (0-11) and year
+      const randomMonth = Math.floor(Math.random() * 12);
+      const randomYear = 2024; // Set the year or make it dynamic if needed
+      
       additionalPosts.push({
         title: generateTitle(i + 3),
         content: generateContent(i + 3),
-        category:  POST_CATEGORIES[i % POST_CATEGORIES.length],
+        category: POST_CATEGORIES[i % POST_CATEGORIES.length],
         authorId: (i % 19) + 1,
         image: getRandomImagePath(),
-        createdAt: new Date(),
+        createdAt: getRandomDate(randomYear, randomMonth),
         updatedAt: new Date(),
       });
     }
@@ -71,6 +81,7 @@ export const seedPosts = async () => {
     console.error('Error seeding posts:', error);
   }
 };
+
 function generateTitle(index) {
   const titles = [
     'How to Stay Healthy While Traveling',
@@ -96,6 +107,7 @@ function generateTitle(index) {
   ];
   return titles[index % titles.length];
 }
+
 function generateContent(index) {
   const contents = [
     'Traveling can be exciting but staying healthy on the road is crucial. This post provides practical tips to maintain your health while exploring new places.',
