@@ -1,152 +1,170 @@
-import { models } from "../models/index.js";
+import prisma from "../../prisma/client.js";
 
-const { Comment, Post, User } = models;
 
+// CREATE A NEW POST
 export const createPost = async (req, res) => {
   try {
-    // Dynamically build the post object from req.body
-    const postData = { ...req.body};
-    postData.authorId= req.user.id || 1 ;
+    const postData = { ...req.body };
+    postData.authorId = req.user?.id || 1;
 
     // Handle single image upload
-    if (req.files && req.files.image) {
+    if (req.files?.image?.[0]) {
       postData.image = `/media/${req.files.image[0].filename}`;
-      console.log('Uploaded file path:', postData.image);
     }
-   
 
-    const post = await Post.create(postData);
+    const post = await prisma.post.create({ data: postData });
 
     res.status(201).json(post);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+// GET POSTS FOR LOGGED-IN USER
 export const getLoggedInUserPosts = async (req, res) => {
   try {
-    console.log('User ID:___________________________________________', req.user.id);
-    const userId = req.user.id; // Get the logged-in user ID
-    const posts = await Post.findAll({
-      where: { authorId: userId||1 },
-      include: [
-        { model: User, as: 'author' },
-        {
-          model: Comment,
-          as: 'comments',
-          include: [{ model: User, as: 'user' }]
-        }
-      ]
+    const userId = req.user?.id || 1;
+
+    const posts = await prisma.post.findMany({
+      where: { authorId: userId },
+      include: {
+        author: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
+
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
+// GET ALL POSTS
 export const getPosts = async (req, res) => {
   try {
-    const posts = await Post.findAll({
-      include: [
-        { model: User, as: 'author'},
-        {
-          model: Comment,
-          as: 'comments',
-          include: [{ model: User, as: 'user' }]
-        }
-      ]
+    const posts = await prisma.post.findMany({
+      include: {
+        author: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
+
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
+// GET POSTS BY SPECIFIC USER
 export const getUserPosts = async (req, res) => {
   try {
-    let userId=req.params.userId;
-    const posts = await Post.findAll({
+    const userId = parseInt(req.params.userId);
+
+    const posts = await prisma.post.findMany({
       where: { authorId: userId },
-      include: [
-        { model: User, as: 'author'},
-        {
-          model: Comment,
-          as: 'comments',
-          include: [{ model: User, as: 'user' }]
-        }
-      ]
+      include: {
+        author: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
+
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
+// GET SINGLE POST BY ID
 export const getPost = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.params.id, {
-      include: [
-        { model: User, as: 'author' },
-        {
-          model: Comment,
-          as: 'comments',
-          include: [{ model: User, as: 'user' }]
-        }
-      ]
+    const postId = parseInt(req.params.id);
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        author: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+
+    if (!post) return res.status(404).json({ message: 'Post not found' });
 
     res.status(200).json(post);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+// UPDATE POST
 export const updatePost = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.params.id);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+    const postId = parseInt(req.params.id);
+
+    const existingPost = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!existingPost) return res.status(404).json({ message: 'Post not found' });
+
+    // Authorization
+    if (existingPost.authorId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Check if the logged-in user is the author
+    // Update fields conditionally
+    const dataToUpdate = {};
+    if (req.body.title) dataToUpdate.title = req.body.title;
+    if (req.body.content) dataToUpdate.content = req.body.content;
+    if (req.files?.image?.[0]) {
+      dataToUpdate.image = `/media/${req.files.image[0].filename}`;
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: dataToUpdate,
+    });
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// DELETE POST
+export const deletePost = async (req, res) => {
+  try {
+    const postId = parseInt(req.params.id);
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
     if (post.authorId !== req.user.id && req.user.role !== 'admin') {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Update the post fields only if new data is provided
-    if (req.body.title) {
-      post.title = req.body.title;
-    }
-    if (req.body.content) {
-      post.content = req.body.content;
-    }
-    if (req.files && req.files.image) {
-      post.image =`/media/${req.files.image[0].filename}`;
-      console.log('Uploaded file path:', post.image);
-    }
+    await prisma.post.delete({
+      where: { id: postId },
+    });
 
-    await post.save();
-    res.status(200).json(post);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-
-export const deletePost = async (req, res) => {
-  try {
-    const post = await Post.findByPk(req.params.id);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Check if the logged-in user is the author
-    if (post.authorId !== req.user.id&& req.user.role !== 'admin') {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    await post.destroy();
     res.status(200).json({ message: 'Post deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
