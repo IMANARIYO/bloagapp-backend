@@ -1,146 +1,169 @@
-import { models } from "../models/index.js";
+import prisma from '../../prisma/client.js'
+import { models } from '../models/index.js'
 
-const { Comment, Post, User } = models;
+const { Comment, Post, User } = models
 
+// ADD A COMMENT TO A POST
 export const addComment = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.params.postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    const postId = parseInt(req.params.postId)
 
-    const comment = await Comment.create({
-      content: req.body.content,
-      userId: req.user.id,
-      postId: req.params.postId
-    });
+    const post = await prisma.post.findUnique({ where: { id: postId } })
+    if (!post) return res.status(404).json({ message: 'Post not found' })
 
-    res.status(201).json(comment);
+    const comment = await prisma.comment.create({
+      data: {
+        content: req.body.content,
+        userId: req.user.id,
+        postId: postId
+      }
+    })
+
+    res.status(201).json(comment)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
+
+// GET ALL COMMENTS FOR ALL POSTS
 export const getALLCommentsForALLposts = async (req, res) => {
   try {
-
-    // Fetch all comments without filtering by postId
-    const comments = await Comment.findAll({
-      include: [{ model: User, as: 'user' }] // Include User model
-    });
-    res.status(200).json(comments);
+    const comments = await prisma.comment.findMany({
+      include: {
+        user: true
+      }
+    })
+    res.status(200).json(comments)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
+// GET ALL COMMENTS FOR ONE POST
 export const getComments = async (req, res) => {
   try {
-    const comments = await Comment.findAll({
-      where: { postId: req.params.postId },
-      include: [{ model: User, as: 'user', }] // Assuming you have a User model with name and email fields
-    });
-    res.status(200).json(comments);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    const postId = parseInt(req.params.postId)
 
+    const comments = await prisma.comment.findMany({
+      where: { postId },
+      include: {
+        user: true
+      }
+    })
+
+    res.status(200).json(comments)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+// GET A SINGLE COMMENT BY ID
 export const getCommentById = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.params.id, {
-      include: [{ model: User,  as: 'user',}]
-    });
+    const id = parseInt(req.params.id)
 
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-    }
+    const comment = await prisma.comment.findUnique({
+      where: { id },
+      include: { user: true }
+    })
 
-    res.status(200).json(comment);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' })
+
+    res.status(200).json(comment)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
 
-
+// UPDATE A COMMENT
 export const updateComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.params.id);
+    const id = parseInt(req.params.id)
 
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+    const comment = await prisma.comment.findUnique({ where: { id } })
+    if (!comment) return res.status(404).json({ message: 'Comment not found' })
+
+    if (comment.userId !== req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    if (comment.UserId !== req.user.id) { // Assuming req.user.id contains the authenticated user's ID
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    const updated = await prisma.comment.update({
+      where: { id },
+      data: {
+        content: req.body.content || comment.content
+      }
+    })
 
-    comment.content = req.body.content || comment.content;
-    await comment.save();
-
-    res.status(200).json(comment);
+    res.status(200).json(updated)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
+
+// GET ALL COMMENTS FOR POSTS OWNED BY LOGGED-IN USER
 export const getCommentsForUserPosts = async (req, res) => {
   try {
-    // Get all posts for the logged-in user
-    const posts = await Post.findAll({
-      where: { authorId: req.user.id }
-    });
+    const posts = await prisma.post.findMany({
+      where: { authorId: req.user.id },
+      select: { id: true }
+    })
 
     if (!posts.length) {
-      return res.status(404).json({ message: 'No posts found for this user' });
+      return res.status(404).json({ message: 'No posts found for this user' })
     }
 
-    // Extract post IDs
-    const postIds = posts.map(post => post.id);
+    const postIds = posts.map(p => p.id)
 
-    // Get all comments for these posts
-    const comments = await Comment.findAll({
-      where: { postId: postIds },
-      include: [{ model: User, as: 'user' }]
-    });
+    const comments = await prisma.comment.findMany({
+      where: {
+        postId: { in: postIds }
+      },
+      include: {
+        user: true
+      }
+    })
 
-    res.status(200).json(comments);
+    res.status(200).json(comments)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
+
+// DELETE A COMMENT
 export const deleteComment = async (req, res) => {
   try {
-    const comment = await Comment.findByPk(req.params.id);
+    const id = parseInt(req.params.id)
 
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+    const comment = await prisma.comment.findUnique({ where: { id } })
+    if (!comment) return res.status(404).json({ message: 'Comment not found' })
+
+    if (comment.userId !== req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    if (comment.authorId !== req.user.id) { // Assuming req.user.id contains the authenticated user's ID
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    await prisma.comment.delete({ where: { id } })
 
-    await comment.destroy();
-
-    res.status(200).json({ message: 'Comment deleted' });
+    res.status(200).json({ message: 'Comment deleted' })
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
 
+// GET COMMENTS BY LOGGED-IN USER
 export const getCommentsByLoggedInUser = async (req, res) => {
   try {
-    // Fetch all comments authored by the logged-in user
-    const comments = await Comment.findAll({
+    const comments = await prisma.comment.findMany({
       where: { userId: req.user.id },
-      include: [{ model: Post, as: 'post' }] // Optionally include the post details if needed
-    });
+      include: { post: true }
+    })
 
     if (!comments.length) {
-      return res.status(404).json({ message: 'No comments found for this user' });
+      return res
+        .status(404)
+        .json({ message: 'No comments found for this user' })
     }
 
-    res.status(200).json(comments);
+    res.status(200).json(comments)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
-
+}
