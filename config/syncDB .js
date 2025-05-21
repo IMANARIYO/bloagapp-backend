@@ -8,8 +8,8 @@ export const syncDB = async (req, res) => {
     await sequelize.sync({ force: true });
     // await sequelize.sync({ alter: true })
     // Use { alter: true } to avoid dropping tables
-
     // Log a success message to the console if synchronization is successful
+
     console.log('Database synced!')
     // Retrieve table names
     const tables = await sequelize.getQueryInterface().showAllTables()

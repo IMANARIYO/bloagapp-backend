@@ -15,11 +15,12 @@ import { baptistename } from "./media/index.js";
 import { seedUsers } from "./seeders/20240801154108-demo-users.js";
 import { seedDatabase } from "./src/controllers/seederController.js";
 import { badroutes, errosingeneral } from "./src/middlewares/globaleerorshandling.js";
+import prisma from "./prisma/client.js";
 
 baptistename
 // Load environment variables
 dotenv.config()
-const app = express();
+ const app = express();
 app.use(cors());  
 const port = process.env.server_PORT || 4444
 
@@ -51,15 +52,15 @@ app.use((req, res) => {
 });
 app.use(bodyParser.json())
 // Connect to PostgreSQL and sync database
-sequelize.sync()
-  .then(() => {
-    console.log('Connection to the database has been established successfully.');
+prisma
+  .$connect()
+  .then(() => console.log('Connected to the database!'))
+  .catch(error => {
+    console.error('Database connection error:', error)
+    process.exit(1)
   })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-  });
-
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}/api-docs`)
 })
+export default app;

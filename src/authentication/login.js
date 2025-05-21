@@ -1,13 +1,17 @@
-import { models } from "../models/index.js";
-import { passComparer, tokengenerating } from "../utils/index.js";
+import prisma from '../../prisma/client.js'
+import { models } from '../models/index.js'
+import { passComparer, tokengenerating } from '../utils/index.js'
 
-const { Comment, Post, User } = models;
+const { Comment, Post, User } = models
 
 export const login = async (req, res) => {
   try {
-  
-    const user = await User.findOne({ where: { email: req.body.email } });
-    // let user = await User.findOne({ email: req.body.email }).select('+password');
+    const user = await prisma.user.findUnique({
+      where: {
+        email: req.body.email
+      }
+    })
+
     if (user) {
       let istruepassword = await passComparer(req.body.password, user.password)
       if (istruepassword) {
@@ -31,10 +35,12 @@ export const login = async (req, res) => {
           access_token: token,
           user: userResponse
         })
-      } else if (!istruepassword) {
+      } 
+      else if (!istruepassword) {
         return res.status(401).json({ message: 'Wrong password' })
       }
-    } else if (!user) {
+    }
+    else if (!user) {
       return res.status(404).json({ message: 'user not found' })
     }
   } catch (err) {

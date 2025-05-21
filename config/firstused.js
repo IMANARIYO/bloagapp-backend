@@ -10,8 +10,8 @@ const dbConfig_onlineproduction = {
   logging: false,
   dialectOptions: {
     ssl: {
-      require: true, // Ensure SSL is required
-      rejectUnauthorized: false, // This can be adjusted based on your SSL configuration
+      require: true,
+      rejectUnauthorized: false, 
     },
   },
 };

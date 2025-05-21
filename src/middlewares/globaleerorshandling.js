@@ -41,12 +41,12 @@ export const errosingeneral = (err, req, res, next) => {
  
 };
 
-    const handleCastErrorDb = err => {
+   export  const handleCastErrorDb = err => {
   const message = `invalid ${err.value}.`;
   return new AppError(message, 404);
 };
 
-const sendErrorDev = (err, res) => {
+export const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -54,7 +54,7 @@ const sendErrorDev = (err, res) => {
     stack: err.stack
   });
 };
-const sendErrorpro = (err, res) => {
+export const sendErrorpro = (err, res) => {
   console.log("in sendpro", err);
   if (err.isOperational) {
     res.status(err.statusCode).json({
