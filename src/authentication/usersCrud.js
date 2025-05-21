@@ -1,160 +1,160 @@
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
-import { models } from "../models/index.js";
+import prisma from "../../prisma/client.js"; // your Prisma client instance
 
-const{Comment, Post, User} = models;
 dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
+  api_secret: process.env.API_SECRET,
 });
 
+// GET ALL USERS
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
-      include: [
-        {
-          model: Post,
-          as: 'posts',
-          include: [{ model: Comment, as: 'comments' }]
+    const users = await prisma.user.findMany({
+      include: {
+        posts: {
+          include: {
+            comments: true,
+          },
         },
-        {
-          model: Comment,
-          as: 'comments'
-        }
-      ]
+        comments: true,
+      },
     });
 
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, error: 'No users found' });
+    if (!users.length) {
+      return res.status(404).json({ success: false, error: "No users found" });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Users retrieved successfully',
-      data: users
+      message: "Users retrieved successfully",
+      data: users,
     });
   } catch (error) {
-    console.log("the error is ",error.message)
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    console.error("the error is", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
+// GET USER BY ID
 export const getUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.findByPk(id, {
-      include: [
-        {
-          model: Post,
-          as: 'posts',
-          include: [{ model: Comment, as: 'comments' }]
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        posts: {
+          include: {
+            comments: true,
+          },
         },
-        {
-          model: Comment,
-          as: 'comments'
-        }
-      ]
+        comments: true,
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
 
     res.status(200).json({
       success: true,
-      message: 'User retrieved successfully',
-      data: user
+      message: "User retrieved successfully",
+      data: user,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
+// DELETE USER
 export const deleteUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await User.destroy({ where: { id } });
-    if (!result) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    await prisma.user.delete({
+      where: { id },
+    });
 
-    res.status(200).json({ success: true, message: 'User deleted successfully' });
+    res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
+// UPDATE USER
 export const updateUserById = async (req, res) => {
   const { id } = req.params;
-  let newObject = { ...req.body };
+  let updateData = { ...req.body };
 
-  if (req.files && req.files.profilePicture) {
+  if (req.files?.profilePicture) {
     const file = req.files.profilePicture[0];
-    newObject.profilePicture = `/media/${file.filename}`;
+    updateData.profilePicture = `/media/${file.filename}`;
   }
 
   try {
-    const result = await User.update(newObject, {
+    const updatedUser = await prisma.user.update({
       where: { id },
-      returning: true,
-      plain: true
+      data: updateData,
     });
-
-    if (!result[1]) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
 
     res.status(200).json({
       success: true,
-      message: 'User updated successfully',
-      data: result[1]
+      message: "User updated successfully",
+      data: updatedUser,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
+// ADD ADMIN ROLE
 export const addAdmin = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-
-    user.role = 'admin';
-    await user.save();
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { role: "admin" },
+    });
 
     res.status(200).json({
       success: true,
-      message: 'User updated successfully and is now an admin',
-      data: user
+      message: "User is now an admin",
+      data: updatedUser,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
 
+// REMOVE ADMIN ROLE
 export const removeAdmin = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-
-    user.role = 'user';
-    await user.save();
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { role: "user" },
+    });
 
     res.status(200).json({
       success: true,
-      message: 'User updated successfully and is now a regular user',
-      data: user
+      message: "User is now a regular user",
+      data: updatedUser,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
