@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "babel-node server.js",
- "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "babel server.js -d dist",
     "dev": "nodemon server.js"
   },
