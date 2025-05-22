@@ -1,30 +1,40 @@
-import { models } from "../models/index.js";
+import prisma from "../../prisma/client.js";
+
 import { passComparer, passHashing } from "../utils/passwordfunctions.js";
 
-const { Comment, Post, User } = models;
-
-User
-export const changepassword = async (req, res, next) => {
+export const changepassword = async (req, res) => {
   try {
     const { currentpassword, newpassword } = req.body
-    const { userId } = req
-    const user = await User.findByPk(userId)
-    console.log('the passed useId', userId)
-    console.log(user)
+    const userId = req.user?.id // assuming req.user is set by JWT middleware
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' })
     }
-    let isPasswordCorrect = await passComparer(currentpassword, user.password)
+
+    const isPasswordCorrect = await passComparer(currentpassword, user.password)
+
     if (!isPasswordCorrect) {
-      return res.status(401).json({
-        message: 'the currentpassword is wrong'
-      })
+      return res.status(401).json({ message: 'The current password is wrong' })
     }
-    let hashedPassword = await passHashing(newpassword)
-    user.password = hashedPassword
-    user.save()
-    res.status(200).json({ message: 'password changed successfuly' })
+
+    const hashedPassword = await passHashing(newpassword)
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+      },
+    })
+
+    res.status(200).json({ message: 'Password changed successfully' })
   } catch (err) {
-    console.log('catch:', err.message, err.name)
+
+    res.status(500).json({ error: 'Something went wrong' })
   }
 }

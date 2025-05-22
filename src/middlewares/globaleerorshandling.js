@@ -62,7 +62,7 @@ export const sendErrorpro = (err, res) => {
       message: err.message
     });
   } else {
-    console.error("error", err);
+    console.log("error", err);
     res.status(500).json({
       status: "error",
       message: 'something went wrong   said by"sendErrorpro "'

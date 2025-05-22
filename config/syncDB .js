@@ -26,7 +26,7 @@ export const syncDB = async (req, res) => {
     });
   }catch (error) {
     // Send an error response if synchronization fails
-    console.error('Failed to sync database:', error);
+    console.log('Failed to sync database:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to sync database',

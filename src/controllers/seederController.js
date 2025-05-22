@@ -4,7 +4,7 @@ import { seedComments } from "./../../seeders/20240801154111-demo-comments.js";
 
 export const seedDatabase = async (req, res) => {
   try {
-    // Run each seeder
+
     await seedUsers()
     await seedPosts()
     await seedComments()

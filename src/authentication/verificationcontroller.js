@@ -1,43 +1,49 @@
-import cron from "node-cron";
-import { catchAsync } from "../middlewares/globaleerorshandling.js";
-import { User } from "../models/index.js";
-import { isOTPValid } from "../utils/passwordfunctions.js";
 
-const tokenExpirationTime = 24 * 60 * 60 * 1000;
+import prisma from '../../prisma/client.js'
+import { catchAsync } from '../middlewares/globaleerorshandling.js'
+import { isOTPValid } from '../utils/passwordfunctions.js'
+
 
 export const verifyEmail = catchAsync(async (req, res, next) => {
-  const { token } = req.query;
+  const { token } = req.query
 
   if (!token) {
-    return res
-      .status(400)
-      .json({ message: 'Token is required for email verification.' });
+    return res.status(400).json({
+      message: 'Token is required for email verification.'
+    })
   }
 
-  const user = await User.findOne({ where: { otp: token } }); // Use Sequelize to find the user
+  // Use Prisma to find the user by OTP
+  const user = await prisma.user.findFirst({
+    where: { otp: token }
+  })
+
   if (!user) {
-    return res
-      .status(404)
-      .json({ message: 'Invalid token. User not found.' });
+    return res.status(404).json({
+      message: 'Invalid token. User not found.'
+    })
   }
 
-  const receivedOTP = token;
-  const storedOTP = user.otp;
-  const validOTP = isOTPValid(storedOTP, receivedOTP, user.otpExpiresAt, res); // Assign the result of isOTPValid to validOTP
+  const storedOTP = user.otp
+  const receivedOTP = token
+  const validOTP = isOTPValid(storedOTP, receivedOTP, user.otpExpiresAt, res)
 
   if (validOTP === true) {
-    // Mark the user as verified and clear OTP details
-    user.verified = true;
-    user.otp = null; // Clear OTP
-    user.otpExpiresAt = null; // Clear OTP expiration
-    await user.save(); // Save the updated user
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verified: true,
+        otp: null,
+        otpExpiresAt: null
+      }
+    })
 
-    return res
-      .status(200)
-      .json({ message: 'Email verification successful. You can now login.' });
+    return res.status(200).json({
+      message: 'Email verification successful. You can now login.'
+    })
   } else {
-    return res
-      .status(400)
-      .json({ message: 'Invalid or expired OTP.' });
+    return res.status(400).json({
+      message: 'Invalid or expired OTP.'
+    })
   }
-});
+})

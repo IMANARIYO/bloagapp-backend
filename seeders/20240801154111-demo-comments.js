@@ -1,58 +1,55 @@
-import { models } from "../src/models/index.js";
+import prisma from "../prisma/client.js";
 
-const { Comment, Post, User } = models;
 
-// Helper function to generate a random integer between min and max (inclusive)
+// Helper functions
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// Helper function to generate a random date within a given year and month
 const getRandomDate = (year, month) => {
   const startDate = new Date(year, month, 1);
   const endDate = new Date(year, month + 1, 0);
   const randomTime = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());
-  return new Date(randomTime).toISOString(); // Return ISO string format
+  return new Date(randomTime);
 };
 
-// Define the seedComments function
 export const seedComments = async () => {
   try {
-    // Insert predefined comments
-    await Comment.bulkCreate([
-      {
-        content: 'This article on AI in healthcare is very insightful. I can see how this will change the industry!',
-        postId: 1, // Assuming the first post has id 1
-        userId: 2, // Assuming the second user has id 2
-        createdAt: new Date('2024-01-15T10:00:00Z').toISOString(),
-        updatedAt: new Date('2024-01-15T10:00:00Z').toISOString(),
-      },
-      {
-        content: 'Great read! The advancements in technology are truly groundbreaking.',
-        postId: 1, // Assuming the first post has id 1
-        userId: 1, // Assuming the first user has id 1
-        createdAt: new Date('2024-02-20T11:00:00Z').toISOString(),
-        updatedAt: new Date('2024-02-20T11:00:00Z').toISOString(),
-      },
-      {
-        content: 'Thanks for sharing this information. It’s fascinating to see how AI is being applied in different fields.',
-        postId: 2, // Assuming the second post has id 2
-        userId: 3, // Assuming the third user has id 3
-        createdAt: new Date('2024-03-10T12:00:00Z').toISOString(),
-        updatedAt: new Date('2024-03-10T12:00:00Z').toISOString(),
-      },
-      {
-        content: 'I never realized the impact of these technologies until now. Very well explained!',
-        postId: 2, // Assuming the second post has id 2
-        userId: 4, // Assuming the fourth user has id 4
-        createdAt: new Date('2024-04-05T13:00:00Z').toISOString(),
-        updatedAt: new Date('2024-04-05T13:00:00Z').toISOString(),
-      },
-    ]);
+    // Predefined comments
+    await prisma.comment.createMany({
+      data: [
+        {
+          content: 'This article on AI in healthcare is very insightful. I can see how this will change the industry!',
+          postId: 1,
+          userId: 2,
+          createdAt: new Date('2024-01-15T10:00:00Z'),
+          updatedAt: new Date('2024-01-15T10:00:00Z'),
+        },
+        {
+          content: 'Great read! The advancements in technology are truly groundbreaking.',
+          postId: 1,
+          userId: 1,
+          createdAt: new Date('2024-02-20T11:00:00Z'),
+          updatedAt: new Date('2024-02-20T11:00:00Z'),
+        },
+        {
+          content: 'Thanks for sharing this information. It’s fascinating to see how AI is being applied in different fields.',
+          postId: 2,
+          userId: 3,
+          createdAt: new Date('2024-03-10T12:00:00Z'),
+          updatedAt: new Date('2024-03-10T12:00:00Z'),
+        },
+        {
+          content: 'I never realized the impact of these technologies until now. Very well explained!',
+          postId: 2,
+          userId: 4,
+          createdAt: new Date('2024-04-05T13:00:00Z'),
+          updatedAt: new Date('2024-04-05T13:00:00Z'),
+        },
+      ],
+    });
 
     console.log('Predefined comments seeded successfully!');
 
-    // Generate additional comments
-    const numberOfAdditionalComments = 20;
-    const additionalComments = [];
+    // Dynamic comments
     const realisticComments = [
       'This is a great perspective. Thanks for sharing!',
       'I found this article very helpful. Keep up the good work!',
@@ -77,28 +74,32 @@ export const seedComments = async () => {
     ];
 
     const currentYear = new Date().getFullYear();
+    const dynamicComments = [];
 
-    for (let i = 0; i < numberOfAdditionalComments; i++) {
-      const month = getRandomInt(0, 11); // Random month
-      additionalComments.push({
+    for (let i = 0; i < 20; i++) {
+      const month = getRandomInt(0, 11);
+      dynamicComments.push({
         content: realisticComments[i % realisticComments.length],
-        postId: (i % 19) + 1, // Cycle through posts
-        userId: (i % 19) + 1, // Cycle through users
+        postId: (i % 19) + 1,
+        userId: (i % 19) + 1,
         createdAt: getRandomDate(currentYear, month),
         updatedAt: getRandomDate(currentYear, month),
       });
     }
 
-    // Bulk create additional comments
-    await Comment.bulkCreate(additionalComments);
+    await prisma.comment.createMany({
+      data: dynamicComments,
+    });
 
     console.log('Additional comments seeded successfully!');
   } catch (error) {
     console.error('Error seeding comments:', error);
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
-// If this file is run directly, execute the seedComments function
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if called directly
+if (process.argv[1] === new URL(import.meta.url).pathname) {
   seedComments().catch(console.error);
 }

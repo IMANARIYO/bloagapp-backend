@@ -31,6 +31,6 @@ export const sendEmail = async (to,subject,textContent, htmlContent,adminEmail) 
  await transporter.sendMail(mailOptions);
 
   } catch (error) {
-    console.error("Failed to send email:", error);
+    console.log("Failed to send email:", error);
   }
 };
