@@ -1,1 +1,2 @@
 q5.  artillery run load-test.yml
+q5.artillery run  test-config.yaml

@@ -645,7 +645,7 @@ paths:
         '404':
           description: Post not found
 
-  /comments/{postId}:
+  /comments/commentsForPost/{postId}:
     get:
       tags:
         - Comments
@@ -689,7 +689,7 @@ paths:
                   $ref: '#/components/schemas/Comment'
         '404':
           description: Post not found
-  /comments:
+  /comments/{postId}:
     post:
       tags:
         - Comments

@@ -1,18 +1,36 @@
 config:
   target: "http://localhost:4444"
   phases:
-    - duration: 60         
-      arrivalRate: 100     
+    - duration: 60
+      arrivalRate: 10
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
 scenarios:
-  - name: "Login Test"
+  - name: "Full Posts Flow"
     flow:
+      # 1. Login and capture token
       - post:
           url: "/auth/login"
           json:
             email: "user@gmail.com"
             password: "user123"
+          capture:
+            - json: "$.access_token"
+              as: token
 
-  - name: "Get Posts Test"
-    flow:
+      # 2. Get all posts (public)
       - get:
           url: "/posts"
+
+      # 3. Create a new post (auth required)
+      - post:
+          url: "/posts"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            title: "Load Test Post"
+            content: "Content created during load test."
+            category: "testing"
+            image: ""
